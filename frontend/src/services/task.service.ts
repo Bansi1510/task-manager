@@ -3,7 +3,7 @@ import type { Task } from  "../components/task";
 const BASE_URL =import.meta.env.VITE_API_URL;
 
  export const fetchTasks = async (): Promise<Task[]> => {
-  const res = await fetch(BASE_URL);
+  const res = await fetch(`${BASE_URL}/api/task`);
   if (!res.ok) throw new Error("Failed to fetch tasks");
   return res.json();
 };
