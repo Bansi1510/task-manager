@@ -6,19 +6,34 @@ import type { Task } from "./components/task";
 
 const App: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:1510/api/task")
-      .then((res) => res.json())
-      .then((data) => setTasks(data))
-      .catch(console.error);
+    const fetchTasks = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/task");
+        const data = await res.json();
+        setTasks(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
   }, []);
 
-  const handleTaskAdded = (task: Task) => setTasks([task, ...tasks]);
+  const handleTaskAdded = (task: Task) =>
+    setTasks((prev) => [task, ...prev]);
+
   const handleTaskUpdated = (updated: Task) =>
-    setTasks(tasks.map((t) => (t._id === updated._id ? updated : t)));
+    setTasks((prev) =>
+      prev.map((t) => (t._id === updated._id ? updated : t))
+    );
+
   const handleTaskDeleted = (id: string) =>
-    setTasks(tasks.filter((t) => t._id !== id));
+    setTasks((prev) => prev.filter((t) => t._id !== id));
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -26,6 +41,7 @@ const App: React.FC = () => {
       <TaskAdd onTaskAdded={handleTaskAdded} />
       <DisplayTask
         tasks={tasks}
+        loading={loading}
         onTaskUpdated={handleTaskUpdated}
         onTaskDeleted={handleTaskDeleted}
       />

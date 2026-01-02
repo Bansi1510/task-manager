@@ -3,185 +3,188 @@ import type { Task } from "./task";
 
 interface Props {
   tasks: Task[];
+  loading: boolean;
   onTaskUpdated: (task: Task) => void;
   onTaskDeleted: (id: string) => void;
 }
 
-const DisplayTask: React.FC<Props> = ({ tasks, onTaskUpdated, onTaskDeleted }) => {
+const DisplayTask: React.FC<Props> = ({
+  tasks,
+  loading,
+  onTaskUpdated,
+  onTaskDeleted,
+}) => {
   const [filterDate, setFilterDate] = useState("");
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editDate, setEditDate] = useState("");
+  const [editing, setEditing] = useState<Task | null>(null);
 
   const handleComplete = async (task: Task) => {
-    if (!task._id) return;
-    try {
-      const res = await fetch(`http://localhost:1510/api/task/${task._id}/complete`, {
-        method: "PATCH",
-      });
-      if (!res.ok) throw new Error("Failed to update task");
-      const updated: Task = await res.json();
-      onTaskUpdated(updated);
-    } catch (error) {
-      console.error(error);
-      alert("Error updating task");
-    }
+    const res = await fetch(
+      `http://localhost:3000/api/task/${task._id}/complete`,
+      { method: "PATCH" }
+    );
+    const updated = await res.json();
+    onTaskUpdated(updated);
   };
 
   const handleDelete = async (id: string) => {
-    try {
-      const res = await fetch(`http://localhost:1510/api/task/${id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Failed to delete task");
-      onTaskDeleted(id);
-    } catch (error) {
-      console.error(error);
-      alert("Error deleting task");
-    }
-  };
-
-  const handleEditClick = (task: Task) => {
-    setEditingTaskId(task._id || null);
-    setEditTitle(task.title);
-    setEditDescription(task.description);
-    setEditDate(task.date.split("T")[0]);
+    await fetch(`http://localhost:3000/api/task/${id}`, {
+      method: "DELETE",
+    });
+    onTaskDeleted(id);
   };
 
   const handleUpdate = async () => {
-    if (!editingTaskId) return;
-    try {
-      const res = await fetch(`http://localhost:1510/api/task/${editingTaskId}`, {
+    if (!editing?._id) return;
+
+    const res = await fetch(
+      `http://localhost:3000/api/task/${editing._id}`,
+      {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: editTitle,
-          description: editDescription,
-          date: editDate,
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to update task");
-      const updated: Task = await res.json();
-      onTaskUpdated(updated);
-      setEditingTaskId(null);
-      window.location.reload();
+        body: JSON.stringify(editing),
+      }
+    );
 
-    } catch (error) {
-      console.error(error);
-      alert("Error updating task");
-    }
+    const updated = await res.json();
+    onTaskUpdated(updated);
+    setEditing(null);
   };
 
   const filteredTasks = filterDate
-    ? tasks.filter((task) => task.date.split("T")[0] === filterDate)
+    ? tasks.filter((t) => t.date.split("T")[0] === filterDate)
     : tasks;
 
-  return (
-    <div className="max-w-5xl mx-auto my-6">
-      <h2 className="text-xl font-semibold mb-3">Tasks</h2>
+  if (loading) return <p className="text-center mt-10">Loading tasks...</p>;
 
-      <div className="mb-4 flex items-center gap-3">
-        <label className="font-medium">Filter by Date:</label>
+  return (
+    <div className="max-w-5xl mx-auto mb-10 px-2 sm:px-0">
+      {/* Filter */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
         <input
           type="date"
           value={filterDate}
           onChange={(e) => setFilterDate(e.target.value)}
-          className="border p-2 rounded"
+          className="border p-2 rounded w-full sm:w-auto"
         />
         {filterDate && (
           <button
             onClick={() => setFilterDate("")}
-            className="bg-gray-300 px-3 py-1 rounded hover:bg-gray-400"
+            className="text-sm text-blue-600 mt-1 sm:mt-0"
           >
             Clear
           </button>
         )}
       </div>
 
-      <div className="bg-white shadow-md rounded-md overflow-hidden">
-        {filteredTasks.length === 0 && (
-          <p className="p-4 text-gray-500 text-center">No tasks available</p>
-        )}
-
-        {filteredTasks.map((task) => (
-          <div
-            key={task._id}
-            className={`relative flex flex-wrap items-center justify-between border-b p-3 hover:bg-gray-50 ${task.completed ? "bg-green-50 line-through text-gray-500" : ""
-              }`}
-          >
-            <div className="flex-1 min-w-50">
-              <h3 className="font-semibold">{task.title}</h3>
-              <p className="text-gray-600">{task.description}</p>
-              <p className="text-sm text-gray-400">{new Date(task.date).toDateString()}</p>
-            </div>
-
-            <div className="flex space-x-2 mt-2 sm:mt-0">
-              {!task.completed && (
-                <button
-                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                  onClick={() => handleComplete(task)}
-                >
-                  Complete
-                </button>
-              )}
-              <button
-                className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                onClick={() => handleEditClick(task)}
-              >
-                Update
-              </button>
-              <button
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                onClick={() => task._id && handleDelete(task._id)}
-              >
-                Delete
-              </button>
-            </div>
-
-            {editingTaskId === task._id && (
-              <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-                <div className="bg-white bg-opacity-90 border p-4 rounded-md shadow-md w-96 pointer-events-auto">
-                  <input
-                    type="text"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    className="border p-2 rounded w-full mb-2"
-                    placeholder="Title"
-                  />
-                  <textarea
-                    value={editDescription}
-                    onChange={(e) => setEditDescription(e.target.value)}
-                    className="border p-2 rounded w-full mb-2"
-                    placeholder="Description"
-                  />
-                  <input
-                    type="date"
-                    value={editDate}
-                    onChange={(e) => setEditDate(e.target.value)}
-                    className="border p-2 rounded w-full mb-2"
-                  />
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => setEditingTaskId(null)}
-                      className="bg-gray-300 px-3 py-1 rounded hover:bg-gray-400"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleUpdate}
-                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-                    >
-                      Save
-                    </button>
-                  </div>
-                </div>
+      {/* Task list */}
+      {filteredTasks.length === 0 ? (
+        <p className="text-center text-gray-500">No tasks found</p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {filteredTasks.map((task) => (
+            <div
+              key={task._id}
+              className={`bg-white p-4 rounded shadow flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3
+                ${task.completed && "line-through text-gray-400"}`}
+            >
+              <div>
+                <h3 className="font-semibold text-gray-800">{task.title}</h3>
+                <p className="text-gray-600">{task.description}</p>
+                <p className="text-sm text-gray-400">
+                  {new Date(task.date).toDateString()}
+                </p>
               </div>
-            )}
 
+              <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
+                {!task.completed && (
+                  <button
+                    onClick={() => handleComplete(task)}
+                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                  >
+                    Complete
+                  </button>
+                )}
+                <button
+                  onClick={() => setEditing(task)}
+                  className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(task._id!)}
+                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editing && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-2">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative animate-fadeIn">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">
+              Edit Task
+            </h3>
+
+            <input
+              className="border p-2 rounded w-full mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={editing.title}
+              onChange={(e) =>
+                setEditing({ ...editing, title: e.target.value })
+              }
+              placeholder="Title"
+            />
+
+            <textarea
+              className="border p-2 rounded w-full mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={editing.description}
+              onChange={(e) =>
+                setEditing({ ...editing, description: e.target.value })
+              }
+              placeholder="Description"
+              rows={3}
+            />
+
+            <input
+              type="date"
+              className="border p-2 rounded w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={editing.date.split("T")[0]}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={(e) =>
+                setEditing({ ...editing, date: e.target.value })
+              }
+            />
+
+
+            <div className="flex justify-end gap-3 flex-wrap">
+              <button
+                onClick={() => setEditing(null)}
+                className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdate}
+                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Save
+              </button>
+            </div>
+
+            {/* Close icon */}
+            <button
+              onClick={() => setEditing(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
