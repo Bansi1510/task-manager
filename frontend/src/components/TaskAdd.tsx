@@ -37,13 +37,15 @@ const TaskAdd: React.FC<Props> = ({ onTaskAdded }) => {
           onChange={(e) => setDescription(e.target.value)}
           className="border p-2 rounded w-full sm:flex-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-        <input
-          type="date"
-          value={date}
-          min={today}
-          onChange={(e) => setDate(e.target.value)}
-          className="border p-2 rounded w-full sm:max-w-[220px] focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
+        <div className="w-full sm:w-[240px]">
+          <input
+            type="date"
+            value={date}
+            min={today}
+            onChange={(e) => setDate(e.target.value)}
+            className="border p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
 
         <button
           onClick={handleAddTask}
