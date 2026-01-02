@@ -34,19 +34,18 @@ const DisplayTask: React.FC<Props> = ({
           type="date"
           value={filterDate}
           onChange={(e) => setFilterDate(e.target.value)}
-          className="border p-2 rounded w-full sm:w-50"
+          className="border p-2 rounded w-full sm:max-w-[220px]"
         />
 
         {filterDate && (
           <button
             onClick={() => setFilterDate("")}
-            className="text-sm text-blue-600 self-start sm:self-auto"
+            className="text-sm text-blue-600 self-start sm:self-center"
           >
             Clear
           </button>
         )}
       </div>
-
 
       {/* Task list */}
       {

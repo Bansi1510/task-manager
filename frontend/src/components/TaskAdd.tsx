@@ -42,8 +42,9 @@ const TaskAdd: React.FC<Props> = ({ onTaskAdded }) => {
           value={date}
           min={today}
           onChange={(e) => setDate(e.target.value)}
-          className="border p-2 rounded w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="border p-2 rounded w-full sm:max-w-[220px] focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
+
         <button
           onClick={handleAddTask}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
