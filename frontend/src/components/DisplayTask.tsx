@@ -6,6 +6,7 @@ interface Props {
   loading: boolean;
   onTaskUpdated: (task: Task) => void;
   onTaskDeleted: (id: string) => void;
+  onTaskComplete: (id: string) => void;
 }
 
 const DisplayTask: React.FC<Props> = ({
@@ -13,48 +14,18 @@ const DisplayTask: React.FC<Props> = ({
   loading,
   onTaskUpdated,
   onTaskDeleted,
+  onTaskComplete,
 }) => {
   const [filterDate, setFilterDate] = useState("");
   const [editing, setEditing] = useState<Task | null>(null);
-
-  const handleComplete = async (task: Task) => {
-    const res = await fetch(
-      `http://localhost:3000/api/task/${task._id}/complete`,
-      { method: "PATCH" }
-    );
-    const updated = await res.json();
-    onTaskUpdated(updated);
-  };
-
-  const handleDelete = async (id: string) => {
-    await fetch(`http://localhost:3000/api/task/${id}`, {
-      method: "DELETE",
-    });
-    onTaskDeleted(id);
-  };
-
-  const handleUpdate = async () => {
-    if (!editing?._id) return;
-
-    const res = await fetch(
-      `http://localhost:3000/api/task/${editing._id}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editing),
-      }
-    );
-
-    const updated = await res.json();
-    onTaskUpdated(updated);
-    setEditing(null);
-  };
 
   const filteredTasks = filterDate
     ? tasks.filter((t) => t.date.split("T")[0] === filterDate)
     : tasks;
 
   if (loading) return <p className="text-center mt-10">Loading tasks...</p>;
+
+  const today = new Date().toISOString().split("T")[0];
 
   return (
     <div className="max-w-5xl mx-auto mb-10 px-2 sm:px-0">
@@ -85,20 +56,18 @@ const DisplayTask: React.FC<Props> = ({
             <div
               key={task._id}
               className={`bg-white p-4 rounded shadow flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3
-                ${task.completed && "line-through text-gray-400"}`}
+                ${task.completed ? "line-through text-gray-400" : ""}`}
             >
               <div>
                 <h3 className="font-semibold text-gray-800">{task.title}</h3>
                 <p className="text-gray-600">{task.description}</p>
-                <p className="text-sm text-gray-400">
-                  {new Date(task.date).toDateString()}
-                </p>
+                <p className="text-sm text-gray-400">{new Date(task.date).toDateString()}</p>
               </div>
 
               <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
                 {!task.completed && (
                   <button
-                    onClick={() => handleComplete(task)}
+                    onClick={() => onTaskComplete(task._id!)}
                     className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
                   >
                     Complete
@@ -111,7 +80,7 @@ const DisplayTask: React.FC<Props> = ({
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(task._id!)}
+                  onClick={() => onTaskDeleted(task._id!)}
                   className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                 >
                   Delete
@@ -126,9 +95,7 @@ const DisplayTask: React.FC<Props> = ({
       {editing && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-2">
           <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative animate-fadeIn">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800">
-              Edit Task
-            </h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">Edit Task</h3>
 
             <input
               className="border p-2 rounded w-full mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -153,12 +120,11 @@ const DisplayTask: React.FC<Props> = ({
               type="date"
               className="border p-2 rounded w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={editing.date.split("T")[0]}
-              min={new Date().toISOString().split("T")[0]}
+              min={today}
               onChange={(e) =>
                 setEditing({ ...editing, date: e.target.value })
               }
             />
-
 
             <div className="flex justify-end gap-3 flex-wrap">
               <button
@@ -168,14 +134,16 @@ const DisplayTask: React.FC<Props> = ({
                 Cancel
               </button>
               <button
-                onClick={handleUpdate}
+                onClick={() => {
+                  onTaskUpdated(editing);
+                  setEditing(null);
+                }}
                 className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
               >
                 Save
               </button>
             </div>
 
-            {/* Close icon */}
             <button
               onClick={() => setEditing(null)}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
