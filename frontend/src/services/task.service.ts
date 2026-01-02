@@ -8,7 +8,7 @@ export const fetchTasks = async (): Promise<Task[]> => {
   return res.json();
 };
 
-export const addTask = async (task: Omit<Task, "_id" | "completed">): Promise<Task> => {
+export const addTask = async (task:Task): Promise<Task> => {
   const res = await fetch(`${BASE_URL}/api/task`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
