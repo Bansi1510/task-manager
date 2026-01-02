@@ -29,8 +29,9 @@ const DisplayTask: React.FC<Props> = ({
 
   return (
     <div className="max-w-5xl mx-auto mb-10 px-2 sm:px-0">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
-        <label className="w-full sm:w-[240px]">
+      <div className="flex flex-col sm:flex-row sm:items-end gap-2 mb-4">
+        <label className="flex flex-col gap-1 text-sm text-gray-500 w-full sm:w-[220px]">
+          Enter Date
           <input
             type="date"
             value={filterDate}
@@ -42,12 +43,13 @@ const DisplayTask: React.FC<Props> = ({
         {filterDate && (
           <button
             onClick={() => setFilterDate("")}
-            className="text-sm text-blue-600"
+            className="text-sm text-blue-600 h-10 self-start sm:self-end"
           >
             Clear
           </button>
         )}
       </div>
+
 
 
       {/* Task list */}

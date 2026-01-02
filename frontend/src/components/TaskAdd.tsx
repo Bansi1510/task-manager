@@ -37,7 +37,8 @@ const TaskAdd: React.FC<Props> = ({ onTaskAdded }) => {
           onChange={(e) => setDescription(e.target.value)}
           className="border p-2 rounded w-full sm:flex-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-        <div className="w-full sm:w-[240px]">
+        <label className="flex flex-col gap-1 text-sm text-gray-500 w-full sm:w-[220px]">
+          Select Date
           <input
             type="date"
             value={date}
@@ -45,7 +46,8 @@ const TaskAdd: React.FC<Props> = ({ onTaskAdded }) => {
             onChange={(e) => setDate(e.target.value)}
             className="border p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
-        </div>
+        </label>
+
 
         <button
           onClick={handleAddTask}
