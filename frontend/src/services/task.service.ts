@@ -9,8 +9,7 @@ const BASE_URL =import.meta.env.VITE_API_URL;
 };
 
  
-export const addTask = async (task:Task
-): Promise<Task> => {
+export const addTask = async (task: Omit<Task, "_id" | "completed">): Promise<Task> => {
   const res = await fetch(BASE_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
